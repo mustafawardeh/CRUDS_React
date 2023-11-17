@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    tableData: []
+    tableData: [],
 }
 
 export const TableSlice = createSlice({
@@ -14,18 +14,15 @@ export const TableSlice = createSlice({
         editRow: (state, action) => {
             const index = state.tableData.findIndex(row => Number(row.id) === Number(action.payload.id))
             if (index !== -1) {
-                // If the row with the matching ID is found
-                state.tableData[index] = action.payload;
+                state.tableData[index] = action.payload
             }
-
         },
         deleteRow: (state, action) => {
-            state.tableData = state.tableData.filter(row => Number(row.id) != Number(action.payload))
+            state.tableData = state.tableData.filter(row => Number(row.id) !== Number(action.payload.id))
         },
         resetData: (state) => {
             state.tableData = []
         },
-
     }
 });
 

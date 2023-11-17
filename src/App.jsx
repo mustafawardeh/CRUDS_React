@@ -8,119 +8,136 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToTable, deleteRow, editRow } from './Redux/TableSlice';
 
 function App() {
-  const [NewRow, SetNewRow] = useState({})
-  const [closeState, setCloseState] = useState(false)
+  const [closeState, setCloseState] = useState(true)
   const [EditMode, setEditMode] = useState(false)
-  const { tableData } = useSelector(state => state.Table)
-  const dispatch = useDispatch()
-
-
+  const [NewRow, SetNewRow] = useState({})
 
 
   const [IndexPage, SetIndexPage] = useState(0)
   const [currentSliceData, SetcurrentSliceData] = useState([])
   const [tableSlices, SettableSlices] = useState([])
-  // Function to update the slice data based on the current index
-  const updateSliceData = () => {
-    for (let i = 0; i < Math.ceil(tableData.length / 5); i++) {
-      tableSlices[i] = [];
-      for (let j = i * 5; j < (i + 1) * 5; j++) {
-        if (j < tableData.length) {
-          tableSlices[i].push(tableData[j]);
-        }
-      }
-    }
-    SetcurrentSliceData(tableSlices[IndexPage]);
-  };
+
+  const [EntireData, setEntireData] = useState([])
+  const [searchTextValue, setsearchTextValue] = useState('')
+
+  const { tableData } = useSelector(state => state.Table)
+  const dispatch = useDispatch()
+
+  // useEffect(() => {
+
+  //   console.log('search value : ' + searchTextValue)
+  //   if (searchTextValue === '') {
+  //     setEntireData(tableData)
+  //   }
+  //   else{
+  //     setEntireData(tableData.filter(prev=>prev.first.toLowerCase().includes(searchTextValue)))
+  //   }
+
+  //   for (let i = 0; i < Math.ceil(EntireData.length / 5); i++) {
+  //     tableSlices[i] = EntireData.slice(i * 5, (i + 1) * 5)
+  //   }
+  //   SetcurrentSliceData(tableSlices[IndexPage])
+  // }, [tableData, EntireData, searchTextValue, tableSlices, IndexPage])
 
 
   useEffect(() => {
-    updateSliceData();
-  }, [tableData, IndexPage]);
+    updateDataAndSlices();
+  }, [tableData, searchTextValue, IndexPage]);
 
-  //Add Row
-  const handleNewButtonClick = () => {
-    setCloseState(true);
-    setEditMode(false);
-  }
+  const updateDataAndSlices = () => {
+    let updatedData = tableData;
 
-
-
-  //Take Date from inputs
-  const handleInputChange = (event) => {
-
-    const { name, value } = event.target;
-
-    if (value !== null || value !== undefined || value !== "") {
-      SetNewRow((prevRowData) => ({
-        ...prevRowData,
-        [name]: value,
-      }));
+    if (searchTextValue !== '') {
+      updatedData = tableData.filter((prev) => prev.first.toLowerCase().includes(searchTextValue));
     }
 
+    setEntireData(updatedData);
+
+    const newTableSlices = [];
+    for (let i = 0; i < Math.ceil(updatedData.length / 5); i++) {
+      newTableSlices[i] = updatedData.slice(i * 5, (i + 1) * 5);
+    }
+
+    SettableSlices(newTableSlices);
+    SetcurrentSliceData(newTableSlices[IndexPage]);
   };
 
-  //Edit ROW
-  const editActionHandle = (item) => {
-    setEditMode(true)
-    setCloseState(true)
-    SetNewRow(item)
+  const HandleAddEditFunction = (event) => {
+    let { name, value } = event.target
+    SetNewRow((prevNewRowData) => ({
+      ...prevNewRowData,
+      [name]: value
+    }))
   }
 
-  const handleSubmit = (event) => {
+  const HandleSubmitFunction = (event) => {
     event.preventDefault();
-
     if (EditMode) {
-      dispatch(editRow(NewRow));
-      setCloseState(false);
-      setEditMode(false); // Set EditMode to false after editing
-    } else {
-      const Index = tableData.findIndex(
-        (item) =>
-          Number(item.id) === Number(NewRow.id) && item !== null
-      );
-      if (Index !== -1) {
-        alert("This row already exists");
-      } else {
-        dispatch(addToTable(NewRow));
-        setCloseState(false);
+      dispatch(editRow(NewRow))
+      setCloseState(true)
+      setEditMode(false)
+      SetNewRow({})
+      location.reload()
+
+    }
+    else {
+      const index = EntireData.findIndex(row => Number(row.id) === Number(NewRow.id))
+      if (index === -1) {
+        setCloseState(true)
+        dispatch(addToTable(NewRow))
+        SetNewRow({})
+        location.reload()
+      }
+      else {
+        alert('Please Add New Data With New Id Number')
       }
     }
-  };
-
-
-  const deleteSelectedRow = (id) => {
-    dispatch(deleteRow(id))
   }
 
-  // handle pages
-  const handlePrevious = () => {
-    if (IndexPage > 0) {
-      SetIndexPage(prev => prev - 1);
+
+  // ----------------- Delete Row , Edit Row ---------------------
+  const handleAddFunction = () => {
+    if (EditMode) {
+      setEditMode(false)
     }
-  };
+    setCloseState(false)
+  }
 
-  const handleNext = () => {
-    if (IndexPage < tableSlices.length - 1) {
-      SetIndexPage(prev => prev + 1);
+  const handleEditRowFunction = (rowData) => {
+    setCloseState(false)
+    setEditMode(true)
+    SetNewRow(rowData)
+  }
+
+
+  const handleDeleteRowFunction = (rowData) => {
+    dispatch(deleteRow(rowData))
+    if (currentSliceData.length === 0) {
+      // SetcurrentSliceData()
     }
-  };
+  }
+
+  const handleSearchFunction = (event) => {
+    event.preventDefault()
+    let searchValue = event.target.value;
+    setsearchTextValue(searchValue)
 
 
+  }
   return (
     <div className='flex relative flex-col'>
-      <h1 className='font-bold text-[42px] text-center py-2'>CRUDS Operation System</h1>
+      <h1 className='font-bold md:text-[42px] text-[26px] text-center py-2'>CRUDS Operation System</h1>
       <div className='border-[2px] border-gray-100' />
       {/* New PDF Side */}
-      <div className='mx-[120px] flex flex-col'>
-        <div className='flex justify-between mt-8'>
-          <button onClick={handleNewButtonClick} className='bg-blue-800 flex justify-center items-center gap-1  text-white font-bold px-3 py-1 rounded-md shadow-md shadow-neutral-600'>
-            <FaPlus size={16} />
+      <div className='md:mx-[120px] mx-[15px] flex flex-col'>
+        <div className='flex justify-between mt-8 '>
+          <button onClick={() => { handleAddFunction() }} className='bg-blue-800 flex  md:text-[16px] text-[12px]  justify-center  items-center gap-1  text-white font-bold px-3 py-1 rounded-md shadow-md shadow-neutral-600'>
+            <FaPlus />
             <p>New</p>
           </button>
 
-          <button className='bg-green-500 flex justify-center items-center gap-1 text-white font-bold px-3 py-1 rounded-md shadow-md shadow-neutral-600'>
-            <AiFillPrinter size={16} />
+          <button className='bg-green-500 flex  md:text-[16px] text-[12px]  justify-center items-center gap-1 text-white font-bold px-3 py-1 rounded-md shadow-md shadow-neutral-600'>
+            <AiFillPrinter />
             <p>PDF</p>
           </button>
         </div>
@@ -128,11 +145,11 @@ function App() {
         {/* Search Side */}
         <div className='flex justify-end gap-2 mt-6 items-center'>
           <p className='text-neutral-500 font-bold'>Search:</p>
-          <input type='text' width={150} className='pl-2 p-1 text-[14px] rounded-md border-neutral-300 border-2' />
+          <input type='text' onChange={(event) => { handleSearchFunction(event) }} className='pl-2 p-1 md:text-[14px] text-[11px] md:w-[150px] w-[120px] rounded-md border-neutral-300 border-2' />
         </div>
 
         {/* Table Side */}
-        <table className='border mt-8'>
+        <table className='border mt-8 md:text-[16px] text-[12px]'>
           <thead>
             <tr className='h-12'>
               <th className='border-r'>ID </th>
@@ -144,25 +161,27 @@ function App() {
             </tr>
           </thead>
           <tbody>
+            {/* currentSliceData && currentSliceData.map((rowData, index) => ( */}
+
             {
               currentSliceData && currentSliceData.map((rowData, index) => (
-                <tr key={index} className={`${index % 2 === 0 ? 'bg-neutral-200' : ''} text-neutral-600 font-normal text-[14px] h-12`}>
+                <tr key={index} className={`${index % 2 === 0 ? 'bg-neutral-200' : ''} text-neutral-600 font-normal md:text-[14px] text-[11px] h-12`}>
                   <td className='border-r text-center border-gray-300'>{rowData.id} </td>
                   <td className='border-r text-center border-gray-300'>{rowData.first} </td>
                   <td className='border-r text-center border-gray-300'>{rowData.last} </td>
                   <td className='border-r text-center border-gray-300'>{rowData.address} </td>
                   <td className='border-r text-center border-gray-300'>{rowData.date} </td>
                   <td className='border-r text-center border-gray-300' >
-                    <div className='flex justify-center items-center gap-2'>
+                    <div className='flex justify-center md:text-[14px] text-[11px] items-center md:gap-2 space-x-[2px]'>
                       <button
-                        onClick={() => editActionHandle(rowData)}
-                        className='bg-green-500 rounded-md   flex justify-center items-center px-3 py-1 text-white font-bold '>
+                        onClick={() => { handleEditRowFunction(rowData) }}
+                        className='bg-green-500 rounded-md   flex justify-center items-center md:px-3 md:py-1 px-[5px] py-[2px] text-white font-bold '>
                         <FaEdit />
                         <p>Edit</p>
                       </button>
                       <button
-                        onClick={() => deleteSelectedRow(rowData.id)}
-                        className='bg-red-600 rounded-md  flex justify-center items-center px-3 py-1 text-white font-bold '>
+                        onClick={() => { handleDeleteRowFunction(rowData) }}
+                        className='bg-red-600 rounded-md  flex justify-center items-center md:px-3 md:py-1 px-[5px] py-[2px] text-white font-bold '>
                         <FaEdit />
                         <p>Delete</p>
                       </button>
@@ -179,12 +198,12 @@ function App() {
         <div className='mt-4 flex justify-between'>
           <p className='text-neutral-600 text-[14px] tracking-wider'>Show {IndexPage + 1} to {tableSlices.length} of {tableSlices.length} entries</p>
           <div className='flex h-8 border overflow-hidden items-center rounded-md shadow-md'>
-            <button onClick={handlePrevious}
+            <button onClick={(event) => { SetIndexPage(prev => prev === 0 ? 0 : prev - 1); IndexPage === 0 ? '' : '' }}
               className={`${IndexPage === 0 ? 'cursor-not-allowed text-neutral-300 ' : 'cursor-pointer text-neutral-600 '} px-2 text-center`}>Previous</button>
 
             <p className='px-3 py-1 text-center text-white font-bold bg-blue-500 '>{IndexPage + 1}</p>
 
-            <button onClick={handleNext}
+            <button onClick={() => { SetIndexPage(prev => prev === tableSlices.length - 1 ? prev : prev + 1) }}
               className={`${IndexPage === tableSlices.length - 1 || tableSlices.length === 0 ? 'cursor-not-allowed text-neutral-300' : 'cursor-pointer text-neutral-600'}  px-2 text-center`}>Next</button>
           </div>
         </div>
@@ -192,17 +211,17 @@ function App() {
 
 
       {/* Edit Add Side */}
-      <div className={`${closeState ? 'flex' : 'hidden'} justify-center items-center absolute w-full h-screen transform   z-[999] `}>
+      <div className={`${!closeState ? 'flex' : 'hidden'} justify-center items-center absolute w-full h-screen transform   z-[999] `}>
         <div className='flex  flex-col overflow-hidden h-[390px]  w-[70%] mx-auto pb-2 bg-white shadow-md rounded-md '>
           <div className=' bg-neutral-300'>
-            <div className='flex justify-end px-2 py-1 cursor-pointer' onClick={() => { setCloseState(false); setEditMode(false) }}>
+            <div className='flex justify-end px-2 py-1 cursor-pointer' onClick={() => { setCloseState(true) }}>
               <IoIosCloseCircle size={26} color='red' />
             </div>
             <div className='border' />
           </div>
           <h1 className='text-[22px] ml-2 my-4 font-bold '>Add Row</h1>
 
-          <form onSubmit={(event) => handleSubmit(event)}>
+          <form onSubmit={(event) => { HandleSubmitFunction(event) }}>
             <div className='flex flex-col py-6 px-3 gap-4 text-neutral-600'>
               {
                 EditMode ? ''
@@ -211,7 +230,7 @@ function App() {
                       <p className='w-[70px]'>ID Number :</p>
                       <input
                         required
-                        onChange={(event) => handleInputChange(event)}
+                        onChange={(event) => { HandleAddEditFunction(event) }}
                         name='id'
                         placeholder='ID Number'
                         type='number'
@@ -223,9 +242,9 @@ function App() {
                 <p className='w-[70px]'>First Name :</p>
                 <input
                   required
-                  onChange={(event) => handleInputChange(event)}
+                  onChange={(event) => { HandleAddEditFunction(event) }}
                   name='first'
-                  placeholder={EditMode ? NewRow.first : ''}
+                  placeholder={'first name'}
                   type='text'
                   className='w-[70%] border border-neutral-400 rounded-md pl-2 py-1' />
               </div>
@@ -233,9 +252,9 @@ function App() {
                 <p className='w-[70px]'>Last Name :</p>
                 <input
                   required
-                  onChange={(event) => handleInputChange(event)}
+                  onChange={(event) => { HandleAddEditFunction(event) }}
                   name='last'
-                  placeholder={EditMode ? NewRow.last : ''}
+                  placeholder={'last name'}
                   type='text'
                   className='w-[70%] border border-neutral-400 rounded-md pl-2 py-1' />
               </div>
@@ -243,9 +262,9 @@ function App() {
                 <p className='w-[70px]'> Address :</p>
                 <input
                   required
-                  onChange={(event) => handleInputChange(event)}
+                  onChange={(event) => { HandleAddEditFunction(event) }}
                   name='address'
-                  placeholder={EditMode ? NewRow.address : ''}
+                  placeholder={'address'}
                   type='text'
                   className='w-[70%] border border-neutral-400 rounded-md pl-2 py-1' />
               </div>
@@ -253,9 +272,9 @@ function App() {
                 <p className='w-[70px]'>Date :</p>
                 <input
                   required
-                  onChange={(event) => handleInputChange(event)}
+                  onChange={(event) => { HandleAddEditFunction(event) }}
                   name='date'
-                  placeholder={EditMode ? NewRow.date : ''}
+                  placeholder={'date'}
                   type='date' className='w-[70%] border border-neutral-400 rounded-md pl-2 py-1' />
               </div>
               <div className='flex justify-end '>
