@@ -6,6 +6,8 @@ import { IoIosCloseCircle } from "react-icons/io";
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToTable, deleteRow, editRow } from './Redux/TableSlice';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 function App() {
   const [closeState, setCloseState] = useState(true)
@@ -22,22 +24,6 @@ function App() {
 
   const { tableData } = useSelector(state => state.Table)
   const dispatch = useDispatch()
-
-  // useEffect(() => {
-
-  //   console.log('search value : ' + searchTextValue)
-  //   if (searchTextValue === '') {
-  //     setEntireData(tableData)
-  //   }
-  //   else{
-  //     setEntireData(tableData.filter(prev=>prev.first.toLowerCase().includes(searchTextValue)))
-  //   }
-
-  //   for (let i = 0; i < Math.ceil(EntireData.length / 5); i++) {
-  //     tableSlices[i] = EntireData.slice(i * 5, (i + 1) * 5)
-  //   }
-  //   SetcurrentSliceData(tableSlices[IndexPage])
-  // }, [tableData, EntireData, searchTextValue, tableSlices, IndexPage])
 
 
   useEffect(() => {
@@ -124,6 +110,28 @@ function App() {
 
 
   }
+
+  const PDFHandleFunction = (e) => {
+    e.preventDefault();
+
+    // Create a new instance of jsPDF
+    const pdfDoc = new jsPDF();
+
+    // Set column headers
+    const headers = [['ID', 'First Name', 'Last Name', 'Address', 'Date']];
+
+    // Extract data for the table
+    const data = tableData.map((row) => [row.id, row.first, row.last, row.address, row.date]);
+
+    // Add the table to the PDF document
+    pdfDoc.autoTable({
+      head: headers,
+      body: data,
+    });
+
+    // Save the PDF
+    pdfDoc.save('tableData.pdf');
+  };
   return (
     <div className='flex relative flex-col'>
       <h1 className='font-bold md:text-[42px] text-[26px] text-center py-2'>CRUDS Operation System</h1>
@@ -136,7 +144,7 @@ function App() {
             <p>New</p>
           </button>
 
-          <button className='bg-green-500 flex  md:text-[16px] text-[12px]  justify-center items-center gap-1 text-white font-bold px-3 py-1 rounded-md shadow-md shadow-neutral-600'>
+          <button onClick={(event) => PDFHandleFunction(event)} className='bg-green-500 flex  md:text-[16px] text-[12px]  justify-center items-center gap-1 text-white font-bold px-3 py-1 rounded-md shadow-md shadow-neutral-600'>
             <AiFillPrinter />
             <p>PDF</p>
           </button>
