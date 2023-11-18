@@ -127,6 +127,7 @@ function App() {
     pdfDoc.autoTable({
       head: headers,
       body: data,
+
     });
 
     // Save the PDF
@@ -204,7 +205,7 @@ function App() {
 
         {/* Pages Side */}
         <div className='mt-4 flex justify-between text-[12px]'>
-          <p className='text-neutral-600  tracking-wider'>Show <span className='font-bold text-neutral-600'> {IndexPage + 1}</span> to <span className='font-bold text-neutral-600'>{tableSlices.length}</span>  of <span className='font-bold text-neutral-600'>{tableSlices.length}</span>  entries</p>
+          <p className='text-neutral-600  tracking-wider'>Show <span className='font-bold text-neutral-600'> {tableSlices.length === 0 ? 0 : IndexPage + 1}</span> to <span className='font-bold text-neutral-600'>{tableSlices.length}</span>  of <span className='font-bold text-neutral-600'>{tableSlices.length}</span>  entries</p>
           <div className='flex h-8 border overflow-hidden items-center rounded-md shadow-md'>
             <button onClick={(event) => { SetIndexPage(prev => prev === 0 ? 0 : prev - 1); IndexPage === 0 ? '' : '' }}
               className={`${IndexPage === 0 ? 'cursor-not-allowed text-neutral-300 ' : 'cursor-pointer text-neutral-600 '} px-2 text-center`}>Previous</button>
