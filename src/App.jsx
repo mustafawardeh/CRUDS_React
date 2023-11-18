@@ -99,7 +99,7 @@ function App() {
   const handleDeleteRowFunction = (rowData) => {
     dispatch(deleteRow(rowData))
     if (currentSliceData.length === 0) {
-      // SetcurrentSliceData()
+      SetIndexPage(prev => prev === 0 ? prev : prev - 1)
     }
   }
 
@@ -203,8 +203,8 @@ function App() {
         </table>
 
         {/* Pages Side */}
-        <div className='mt-4 flex justify-between'>
-          <p className='text-neutral-600 text-[14px] tracking-wider'>Show {IndexPage + 1} to {tableSlices.length} of {tableSlices.length} entries</p>
+        <div className='mt-4 flex justify-between text-[12px]'>
+          <p className='text-neutral-600  tracking-wider'>Show <span className='font-bold text-neutral-600'> {IndexPage + 1}</span> to <span className='font-bold text-neutral-600'>{tableSlices.length}</span>  of <span className='font-bold text-neutral-600'>{tableSlices.length}</span>  entries</p>
           <div className='flex h-8 border overflow-hidden items-center rounded-md shadow-md'>
             <button onClick={(event) => { SetIndexPage(prev => prev === 0 ? 0 : prev - 1); IndexPage === 0 ? '' : '' }}
               className={`${IndexPage === 0 ? 'cursor-not-allowed text-neutral-300 ' : 'cursor-pointer text-neutral-600 '} px-2 text-center`}>Previous</button>
